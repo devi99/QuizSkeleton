@@ -29,10 +29,8 @@
             </div>
 
             <div class="buttons">
-
                 <button id="btnCreateGame" class="btn left">CREATE</button>
                 <button id="btnJoinGame" class="btn right">JOIN</button>
-                <button id="btnStartGame" class="btn right">START</button>
                 <div style="clear:both"></div>
                 <div id="mid">
                 <input class="btn" type="button" value="LEADER BOARD" id="leaderboard">
@@ -46,6 +44,33 @@
     <!-- This screen appears when a user clicks "CREATE" on the Title Screen -->
     <script id="create-game-template" type="text/template">
         <div class="createGameWrapper">
+            <form class="form-inline" action="/"> 
+                <div class="form-group">
+                    <label for="gameTypes">Gametype:</label>
+                    <select id="gameTypes" class="form-control">
+                        <option value="1">Fast Game</option>
+                        <option value="2">Turn-based Game</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="nUsers">Number of users: </label>
+                    <input type="number" id="nUsers" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="nQuestions">Number of Questions: </label>
+                    <input type="number" id="nQuestions" class="form-control">       
+                </div>
+            </form>
+            <div class="buttons">
+                <button id="btnStartGame" class="btn right">START</button>
+                <div style="clear:both"></div>
+            </div>
+        </div>
+    </script>
+
+    <!-- This screen appears when a user clicks "START" on the Title Screen -->
+    <script id="start-game-template" type="text/template">
+        <div class="startGameWrapper">
 
             <div class="info">Open this site on your mobile device:</div>
             <div id="gameURL" class="infoBig">Error!</div>
@@ -117,6 +142,6 @@
 
     <!-- app.js is where all the client-side Anagrammatix game logic -->
     <script src="appQuizClient.js"></script>
-    <script src="sample.js"></script>
+    
 </body>
 </html>

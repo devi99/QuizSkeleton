@@ -1,0 +1,14 @@
+extends layout
+
+block content
+
+  h1 Question: #{question.question}
+  h1 Answer: #{question.correctAnswer}
+  
+  div(style='margin-left:20px;margin-top:20px')
+      
+  hr
+  p
+    a(href=question.url+'/delete') Delete question
+  p
+    a(href=question.url+'/update') Update question

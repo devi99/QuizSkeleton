@@ -1,0 +1,13 @@
+extends layout
+
+block content
+
+  h1 Delete Question: #{question.question}
+  
+    p Do you really want to delete this Question?
+    
+    form(method='POST' action='')
+      div.form-group
+        input#id.form-control(type='hidden',name='id', required='true', value=question._id )
+
+      button.btn.btn-primary(type='submit') Delete

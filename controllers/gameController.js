@@ -2,19 +2,19 @@ var Game = require('../models/game');
 var async = require('async');
 
 exports.game_index = function(req, res) {
-
-    async.parallel({
+/*     async.parallel({
         Game_count: function(callback) {
             Game.countDocuments(callback);
         },
     }, function(err, results) {
         res.render('game_index', { title: 'Let us play a Quiz', error: err, data: results });
-    });
+    }); */
+    res.render('game_index', { title: 'Let us play a Quiz' });
 };
 
 exports.game_create_get = function(req, res, next) {
     console.log("game_create_get");
-    res.render('game_form', { title: 'Create Game' });
+    res.render('game_create', { title: 'Create Game' });
 };
 
 // Handle game create on POST.
@@ -26,7 +26,7 @@ exports.game_create_post = [
 
   
     // Sanitize fields.
-    sanitizeBody('*').trim().escape(),
+    //sanitizeBody('*').trim().escape(),
     // Process request after validation and sanitization.
     (req, res, next) => {
         

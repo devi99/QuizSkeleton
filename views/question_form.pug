@@ -1,0 +1,32 @@
+extends layout
+
+block content
+  h1=title
+
+  form(method='POST' action='')
+    div.form-group
+      label(for='question') Question:
+      input#question.form-control(type='text', placeholder='question' name='question' required='true' value=(undefined===question ? '' : question.question) )
+      label(for='correctAnswer') Correct Answer:
+      input#correctAnswer.form-control(type='text', placeholder='Correct Answer' name='correctAnswer' required='true' value=(undefined===question ? '' : question.correctAnswer))
+      label(for='fakeAnswer1') Fake Answer 1:
+      input#fakeAnswer1.form-control(type='text', placeholder='Fake Answer' name='fakeAnswer1' required='false' value=(undefined===question ? '' : question.fakeAnswer1))
+      label(for='fakeAnswer2') Fake Answer 2:
+      input#fakeAnswer1.form-control(type='text', placeholder='Fake Answer' name='fakeAnswer2' required='false' value=(undefined===question ? '' : question.fakeAnswer2))
+      label(for='fakeAnswer3') Fake Answer 3:
+      input#fakeAnswer1.form-control(type='text', placeholder='Fake Answer' name='fakeAnswer3' required='false' value=(undefined===question ? '' : question.fakeAnswer3))
+      label(for='fakeAnswer4') Fake Answer 4:
+      input#fakeAnswer1.form-control(type='text', placeholder='Fake Answer' name='fakeAnswer4' required='false' value=(undefined===question ? '' : question.fakeAnswer4))
+      label(for='fakeAnswer5') Fake Answer 5:
+      input#fakeAnswer1.form-control(type='text', placeholder='Fake Answer' name='fakeAnswer5' required='false' value=(undefined===question ? '' : question.fakeAnswer5))
+      label(for='typeMedia') typeMedia:
+      input#typeMedia.form-control(type='text', placeholder='typeMedia' name='typeMedia' required='false' value=(undefined===question ? '' : question.typeMedia))
+      label(for='urlMedia') urlMedia:
+      input#urlMedia.form-control(type='text', placeholder='urlMedia' name='urlMedia' required='false' value=(undefined===question ? '' : question.urlMedia))
+          
+    button.btn.btn-primary(type='submit') Submit
+
+  if errors 
+    ul
+      for error in errors
+        li!= error.msg
