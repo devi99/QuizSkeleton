@@ -4,7 +4,7 @@ var random = require('mongoose-simple-random');
 var Schema = mongoose.Schema;
 
 var QuestionSchema = new Schema({
-    question: {type: String, required: true},
+    title: {type: String, required: true},
     correctAnswer: {type: String, required: true},
     fakeAnswer1: {type: String, required: false},
     fakeAnswer2: {type: String, required: false},

@@ -55,7 +55,7 @@ exports.question_create_get = function(req, res, next) {
 exports.question_create_post = [
 
     // Validate fields.
-    body('question', 'question must not be empty.').isLength({ min: 1 }).trim(),
+    body('title', 'title must not be empty.').isLength({ min: 1 }).trim(),
     body('correctAnswer', 'correctAnswer must not be empty.').isLength({ min: 1 }).trim(),
   
     // Sanitize fields.
@@ -71,7 +71,7 @@ exports.question_create_post = [
 
         // Create a Question object with escaped and trimmed data.
         var question = new Question(
-          { question: req.body.question,
+          { title: req.body.title,
             correctAnswer: req.body.correctAnswer,
             fakeAnswer1: req.body.fakeAnswer1,
             fakeAnswer2: req.body.fakeAnswer2,

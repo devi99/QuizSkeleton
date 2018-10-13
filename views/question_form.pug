@@ -5,8 +5,8 @@ block content
 
   form(method='POST' action='')
     div.form-group
-      label(for='question') Question:
-      input#question.form-control(type='text', placeholder='question' name='question' required='true' value=(undefined===question ? '' : question.question) )
+      label(for='title') Title:
+      input#question.form-control(type='text', placeholder='Title' name='title' required='true' value=(undefined===question ? '' : question.title) )
       label(for='correctAnswer') Correct Answer:
       input#correctAnswer.form-control(type='text', placeholder='Correct Answer' name='correctAnswer' required='true' value=(undefined===question ? '' : question.correctAnswer))
       label(for='fakeAnswer1') Fake Answer 1:

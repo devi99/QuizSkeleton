@@ -24,7 +24,7 @@ exports.initGame = function(sio, socket,sdb){
     // Host Events
     gameSocket.on('hostCreateNewGame', hostCreateNewGame);
     gameSocket.on('hostRoomFull', hostPrepareGame);
-    //gameSocket.on('hostCountdownFinished', hostStartGame);
+    gameSocket.on('hostCountdownFinished', hostStartGame);
     //gameSocket.on('hostNextRound', hostNextRound);
 
     // Player Events
@@ -73,19 +73,28 @@ function hostPrepareGame(gameId) {
                     gameStatus: 'Not started',
                     gameType:'0',
                     numberOfPlayers:2,
-                    question: results
+                    questions: results
                 });
             game.save(function (err) {
                 if (err) { return next(err); }
                 console.log("Game saved...");
             });
-          console.log(results); // 5 elements
+          //console.log(results); 
         }
       });
 
      console.log("All Players Present. Preparing game...");
     io.sockets.in(data.gameId).emit('beginNewGame', data);
 }
+
+/*
+ * The Countdown has finished, and the game begins!
+ * @param gameId The game ID / room ID
+ */
+function hostStartGame(gameId) {
+    console.log('Game Started.');
+    sendWord(0,gameId);
+};
 
 /* *****************************
    *                           *
@@ -126,5 +135,98 @@ function playerJoinGame(data) {
         // Otherwise, send an error message back to the player.
         this.emit('error',{message: "This room does not exist."} );
     }
+}
+
+/* *************************
+   *                       *
+   *      GAME LOGIC       *
+   *                       *
+   ************************* */
+
+/**
+ * Get a word for the host, and a list of words for the player.
+ *
+ * @param wordPoolIndex
+ * @param gameId The room identifier
+ */
+async function sendWord(wordPoolIndex, gameId) {
+    console.log("sendWord#" + wordPoolIndex + "#" + gameId )
+    var data = await getWordData(wordPoolIndex, gameId);
+    console.log(data);
+    io.sockets.in(gameId).emit('newWordData', data);
+}
+/**
+ * This function does all the work of getting a new words from the pile
+ * and organizing the data to be sent back to the clients.
+ *
+ * @param i The index of the wordPool.
+ * @returns {{round: *, word: *, answer: *, list: Array}}
+ */
+async function getWordData(i, id){
+    console.log("getwordData");
+    var wordData;
+    //const count = await Question.count().exec();
+    //var rnd = Math.floor(Math.random() * count);
+    //const question_list = await Question.findOne().skip(rnd).exec();
+    //const question_list = await Game.findOne({'_id' :id},'question').exec();
+    //console.log(question_list);
+    const game = await Game.findOne({'gameId' :id})
+    .populate('questions').exec();
+/*     await Game.findOne({'gameId' :id})
+        .populate('questions')
+        .exec(function (err, game) {
+        if (err) { console.log(err); }
+        // Successful, so render.
+        //console.log(game.questions[i].title);
+    }); */
+    
+    var answerList = [game.questions[i].fakeAnswer1, 
+    game.questions[i].fakeAnswer2, 
+    game.questions[i].fakeAnswer3,
+    game.questions[i].fakeAnswer4,
+    game.questions[i].fakeAnswer5];
+
+    //console.log(answerList);
+    rnd = Math.floor(Math.random() * 5);
+    answerList.splice(rnd, 0, game.questions[i].correctAnswer); 
+        // Package the words into a single object.
+    wordData = {
+        round: i,
+        word : game.questions[i].title,   // Displayed Word
+        answer : game.questions[i].correctAnswer, //question_list[i].correctAnswer, Correct Answer
+        typeMedia : game.questions[i].typeMedia,
+        urlMedia : game.questions[i].urlMedia,
+        list : answerList      // Word list for player (decoys and answer)
+    };     
+    //console.log("inside await");   
+
+      //  console.log(wordData);
+    return wordData;
+
+}
+ 
+/*
+ * Javascript implementation of Fisher-Yates shuffle algorithm
+ * http://stackoverflow.com/questions/2450954/how-to-randomize-a-javascript-array
+ */
+function shuffle(array) {
+    var currentIndex = array.length;
+    var temporaryValue;
+    var randomIndex;
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+    }
+
+    return array;
 }
 

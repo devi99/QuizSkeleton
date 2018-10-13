@@ -7,7 +7,7 @@ var GameSchema = new Schema({
     gameStatus: {type: String, required: true},
     gameType: {type: String, required: true},
     numberOfPlayers: {type: Number, required: true},
-    question: [{ type: Schema.ObjectId, ref: 'Question' }]
+    questions: [{ type: Schema.ObjectId, ref: 'Question' }]
 });
 
 // Virtual for this question instance URL.

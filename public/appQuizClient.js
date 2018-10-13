@@ -20,8 +20,8 @@ jQuery(function($){
             IO.socket.on('connected', IO.onConnected );
             IO.socket.on('newGameCreated', IO.onNewGameCreated );
             IO.socket.on('playerJoinedRoom', IO.playerJoinedRoom );
-            //IO.socket.on('beginNewGame', IO.beginNewGame );
-            //IO.socket.on('newWordData', IO.onNewWordData);
+            IO.socket.on('beginNewGame', IO.beginNewGame );
+            IO.socket.on('newWordData', IO.onNewWordData);
             //IO.socket.on('hostCheckAnswer', IO.hostCheckAnswer);
             //IO.socket.on('gameOver', IO.gameOver);
             //IO.socket.on('error', IO.error );
@@ -51,6 +51,7 @@ jQuery(function($){
          * @param data {{playerName: string, gameId: int, mySocketId: int}}
          */
         playerJoinedRoom : function(data) {
+            console.log('playerJoinedRoom');
             // When a player joins a room, do the updateWaitingScreen funciton.
             // There are two versions of this function: one for the 'host' and
             // another for the 'player'.
@@ -58,6 +59,26 @@ jQuery(function($){
             // So on the 'host' browser window, the App.Host.updateWiatingScreen function is called.
             // And on the player's browser, App.Player.updateWaitingScreen is called.
             App[App.myRole].updateWaitingScreen(data);
+        },
+
+        /**
+         * Both players have joined the game.
+         * @param data
+         */
+        beginNewGame : function(data) {
+            App[App.myRole].gameCountdown(data);
+        },   
+
+        /**
+         * A new set of words for the round is returned from the server.
+         * @param data
+         */
+        onNewWordData : function(data) {
+            // Update the current round
+            App.currentRound = data.round;
+
+            // Change the word for the Host and Player
+            App[App.myRole].newWord(data);
         },        
     };
 
@@ -185,7 +206,7 @@ jQuery(function($){
                 App.Host.numPlayersInTotal = $('#nUsers').val();
                 App.Host.numQuestions = $('#nQuestions').val();
                 console.log("Clicked Start A Game with " + App.Host.gameType + App.Host.numPlayersInTotal);
-                //App.Host.displayStartGameScreen();
+                App.Host.displayStartGameScreen();
                 IO.socket.emit('hostCreateNewGame');
             }, 
 
@@ -254,7 +275,55 @@ jQuery(function($){
 
                 console.log(App.Host.numPlayersInRoom + '/' + App.Host.numPlayersInTotal + ' in Room!');
 
-            },                                 
+            },  
+
+            /**
+             * Show the countdown screen
+             */
+            gameCountdown : function() {
+                console.log('gameccountdown started...');   
+                // Prepare the game screen with new HTML
+                App.$gameArea.html(App.$hostGame);
+                //App.doTextFit('#hostWord');
+
+                // Begin the on-screen countdown timer
+                var $secondsLeft = $('#hostWord');
+                App.countDown( $secondsLeft, 5, function(){
+                    IO.socket.emit('hostCountdownFinished', App.gameId);
+                });
+                
+                $.each(App.Host.players, function(index,value){
+                    $('#playerScores')
+                        .append('<div id="player'+ index++ +'" class="row playerScore"><span id="'+ value.mySocketId +'" class="score">0</span><span class="playerName">'+ value.playerName +'</span></div>');
+                });
+
+                // Set the Score section on screen to 0 for each player.
+                // $('#player1Score').find('.score').attr('id',App.Host.players[0].mySocketId);
+                // $('#player2Score').find('.score').attr('id',App.Host.players[1].mySocketId);
+            },    
+            
+            /**
+             * Show the word for the current round on screen.
+             * @param data{{round: *, word: *, answer: *,typeMedia: *, urlMedia: *, list: Array}}
+             */
+            newWord : function(data) {
+                // Insert the new word into the DOM
+                $('#hostWord').text(data.word);
+                //App.doTextFit('#hostWord');
+                //Insert the Image
+                console.log(data.typeMedia);
+                if(data.typeMedia == 'pic') {
+                    //$('body').css('backgroundImage','url('+data.urlMedia+')');
+                    $('#hostMedia').html("<img class='fixed-ratio-resize' src='"+data.urlMedia+"'>");
+                }
+                if(data.typeMedia == 'vid') {
+                    $('#hostMedia').html("<iframe width='100%' height='500' src='"+data.urlMedia+"' frameborder='0' gesture='media' allow='encrypted-media' allowfullscreen></iframe>");
+                }
+
+                // Update the data for the current round
+                App.Host.currentCorrectAnswer = data.answer;
+                App.Host.currentRound = data.round;
+            },                                       
         },
 
 
@@ -403,7 +472,67 @@ jQuery(function($){
                             .addClass('btnGameOver')
                     );
             }
-        },        
+        }, 
+
+        /* **************************
+                  UTILITY CODE
+           ************************** */
+
+        /**
+         * Display the countdown timer on the Host screen
+         *
+         * @param $el The container element for the countdown timer
+         * @param startTime
+         * @param callback The function to call when the timer ends.
+         */
+        countDown : function( $el, startTime, callback) {
+
+            // Display the starting time on the screen.
+            $el.text(startTime);
+            //App.doTextFit('#hostWord');
+
+            // console.log('Starting Countdown...');
+
+            // Start a 1 second timer
+            var timer = setInterval(countItDown,1000);
+
+            // Decrement the displayed timer value on each 'tick'
+            function countItDown(){
+                startTime -= 1
+                $el.text(startTime);
+                //App.doTextFit('#hostWord');
+
+                if( startTime <= 0 ){
+                    // console.log('Countdown Finished.');
+
+                    // Stop the timer and do the callback.
+                    clearInterval(timer);
+                    callback();
+                    return;
+                }
+            }
+
+        },
+
+        /**
+         * Make the text inside the given element as big as possible
+         * See: https://github.com/STRML/textFit
+         *
+         * @param el The parent element of some text
+         */
+        doTextFit : function(el) {
+            textFit(
+                $(el)[0],
+                {
+                    alignHoriz:true,
+                    alignVert:false,
+                    widthOnly:true,
+                    reProcess:true,
+                    maxFontSize:300
+                }
+            );
+        }        
+        
     };
 
     App.init();
