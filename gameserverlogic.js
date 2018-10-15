@@ -2,6 +2,7 @@ var io;
 var gameSocket;
 var db;
 var Question = require('./models/question');
+var Genre = require('./models/genre');
 var Game = require('./models/game');
 var async = require('async');
 var random = require('mongoose-simple-random');
@@ -57,36 +58,42 @@ function hostCreateNewGame() {
  * All players have joined. Alert the host!
  * @param gameId The game ID / room ID
  */
-function hostPrepareGame(gameId) {
+function hostPrepareGame(hostData) {
     console.log("hostPrepareGame...");
+
     var sock = this;
     var data = {
         mySocketId : sock.id,
-        gameId : gameId
+        gameId : hostData.gameId,
     };
 
-    var filter = { genre: { $in: ['Kids', 'engineering'] } };
-
-    Question.findRandom(filter, {}, {limit: 5}, function(err, results) {
-        if (!err) {
-            console.log(" results findRandom");
-            console.log(results);
-        // Create a Game object
-            var game = new Game(
-                { gameId: gameId,
-                    gameStatus: 0,
-                    gameType:'0',
-                    numberOfPlayers:2,
-                    questions: results
+    var genres = Genre.find({name: {$in: ['History', 'Kids']}});
+    genres.select('_id');
+    genres.exec(function (err, results) {
+        if (err) return handleError(err);
+        console.log(results);
+        var filter = { genre: { $in: results } };
+        Question.findRandom(filter, {}, {limit: hostData.numQuestions}, function(err, results) {
+            if (!err) {
+                console.log(" results findRandom");
+                console.log(results);
+            // Create a Game object
+                var game = new Game(
+                    { gameId: hostData.gameId,
+                        gameStatus: 0,
+                        gameType:hostData.gameType,
+                        numberOfPlayers:hostData.numberOfPlayers,
+                        questions: results
+                    });
+                game.save(function (err) {
+                    if (err) {
+                         console.log("game save error#" + err);
+                        return err; 
+                    }
+                    console.log("Game saved...");
                 });
-            game.save(function (err) {
-                if (err) {
-                     console.log("game save error#" + err);
-                    return err; 
-                }
-                console.log("Game saved...");
-            });
-        }
+            }
+          });        
       });
 
      console.log("All Players Present. Preparing game...");

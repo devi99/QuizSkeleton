@@ -295,8 +295,15 @@ jQuery(function($){
                 if (App.Host.numPlayersInRoom == App.Host.numPlayersInTotal) {
                     console.log('Room is full. Almost ready!');
 
+                    var data = {
+                        gameId : App.gameId,
+                        numberOfPlayers : App.Host.numPlayersInTotal,
+                        gameType: App.Host.gameType,
+                        numQuestions: App.Host.numQuestions
+                    };
                     // Let the server know that the players are present.
-                    IO.socket.emit('hostRoomFull',App.gameId);
+                    //IO.socket.emit('hostRoomFull',App.gameId);
+                    IO.socket.emit('hostRoomFull',data);
                 };
 
                 console.log(App.Host.numPlayersInRoom + '/' + App.Host.numPlayersInTotal + ' in Room!');
@@ -337,13 +344,13 @@ jQuery(function($){
                 $('#hostWord').text(data.word);
                 //App.doTextFit('#hostWord');
                 //Insert the Image
-                console.log(data.typeMedia);
+                //console.log(data.typeMedia);
                 if(data.typeMedia == 'pic') {
                     //$('body').css('backgroundImage','url('+data.urlMedia+')');
                     $('#hostMedia').html("<img class='fixed-ratio-resize' src='"+data.urlMedia+"'>");
                 }
                 if(data.typeMedia == 'vid') {
-                    $('#hostMedia').html("<iframe width='100%' height='500' src='"+data.urlMedia+"?rel=0&amp;controls=0&amp;showinfo=0' frameborder='0' gesture='media' allow='encrypted-media' allowfullscreen></iframe>");
+                    $('#hostMedia').html("<iframe width='100%' height='500' src='"+data.urlMedia+"?rel=0&amp;controls=0&amp;showinfo=0&autoplay=1' frameborder='0' gesture='media' allow='autoplay;  encrypted-media' allowfullscreen></iframe>");
                 }
 
                 // Update the data for the current round
@@ -439,7 +446,7 @@ jQuery(function($){
 
                 // Display the winner (or tie game message)
                 if(tie){
-                    $('#hostWord').text("It's a Tie!");
+                    $('#hostWord').text("It's a wrap!");
                 } else {
                     $('#hostWord').text( winner + ' Wins!!' );
                 }
