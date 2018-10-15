@@ -3,6 +3,7 @@ const app = express()
 const path = require('path');
 const index = require('./routes/index');
 const questions = require('./routes/questions');
+const genres = require('./routes/genres');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/questions', questions);
+app.use('/genres', genres);
 
 // Error handler
 app.use(function(err, req, res, next) {

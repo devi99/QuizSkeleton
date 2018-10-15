@@ -4,7 +4,7 @@ var db;
 var Question = require('./models/question');
 var Game = require('./models/game');
 var async = require('async');
-//var random = require('mongoose-simple-random');
+var random = require('mongoose-simple-random');
 
 /**
  * This function is called by index.js to initialize a new game instance.
@@ -25,12 +25,12 @@ exports.initGame = function(sio, socket,sdb){
     gameSocket.on('hostCreateNewGame', hostCreateNewGame);
     gameSocket.on('hostRoomFull', hostPrepareGame);
     gameSocket.on('hostCountdownFinished', hostStartGame);
-    //gameSocket.on('hostNextRound', hostNextRound);
+    gameSocket.on('hostNextRound', hostNextRound);
 
     // Player Events
     gameSocket.on('playerJoinGame', playerJoinGame);
-    //gameSocket.on('playerAnswer', playerAnswer);
-    //gameSocket.on('playerRestart', playerRestart);
+    gameSocket.on('playerAnswer', playerAnswer);
+    gameSocket.on('playerRestart', playerRestart);
 }
 
 /* *******************************
@@ -65,27 +65,33 @@ function hostPrepareGame(gameId) {
         gameId : gameId
     };
 
-    Question.findRandom({}, {}, {limit: 5}, function(err, results) {
+    var filter = { genre: { $in: ['Kids', 'engineering'] } };
+
+    Question.findRandom(filter, {}, {limit: 5}, function(err, results) {
         if (!err) {
+            console.log(" results findRandom");
+            console.log(results);
         // Create a Game object
             var game = new Game(
                 { gameId: gameId,
-                    gameStatus: 'Not started',
+                    gameStatus: 0,
                     gameType:'0',
                     numberOfPlayers:2,
                     questions: results
                 });
             game.save(function (err) {
-                if (err) { return next(err); }
+                if (err) {
+                     console.log("game save error#" + err);
+                    return err; 
+                }
                 console.log("Game saved...");
             });
-          //console.log(results); 
         }
       });
 
      console.log("All Players Present. Preparing game...");
     io.sockets.in(data.gameId).emit('beginNewGame', data);
-}
+};
 
 /*
  * The Countdown has finished, and the game begins!
@@ -94,6 +100,63 @@ function hostPrepareGame(gameId) {
 function hostStartGame(gameId) {
     console.log('Game Started.');
     sendWord(0,gameId);
+};
+
+/**
+ * A player answered correctly. Time for the next word.
+ * @param data Sent from the client. Contains the current round and gameId (room)
+ */
+function hostNextRound(data) {
+    console.log('round' + data.round);
+    if(!data.gameOver ){
+        // Send a new set of words back to the host and players.
+        sendWord(data.round, data.gameId);
+    } else {
+
+      if(!data.done)
+      {
+/*         //updating players win count
+        db.all("SELECT * FROM player WHERE player_name=?",data.winner, function(err, rows) {
+        rows.forEach(function (row) {
+            win=row.player_win;
+            win++;
+            console.log(win);
+            db.run("UPDATE player SET player_win = ? WHERE player_name = ?", win, data.winner);
+            console.log(row.player_name, row.player_win);
+        })
+        }); */
+        data.done++;
+      }
+        // If the current round exceeds the number of words, send the 'gameOver' event.
+      io.sockets.in(data.gameId).emit('gameOver',data);
+    }
+};
+
+// function for finding leader
+function findLeader()
+{
+  console.log("finding leader");
+    var sock=this;
+    var i=0;
+    leader={};
+    db.all("SELECT * FROM player ORDER BY player_win DESC LIMIT 10",function(err,rows)
+    {
+      if(rows!=undefined)
+      {
+        rows.forEach(function (row)
+        {
+          leader[i]={};
+          leader[i]['name']=row.player_name;
+          leader[i]['win']=row.player_win;
+          console.log(row.player_name);
+          console.log(row.player_win);
+          i++;
+        })
+      }
+      console.log("found leader");
+      sock.emit('showLeader',leader);
+    });
+
 };
 
 /* *****************************
@@ -135,7 +198,32 @@ function playerJoinGame(data) {
         // Otherwise, send an error message back to the player.
         this.emit('error',{message: "This room does not exist."} );
     }
-}
+};
+
+/**
+ * A player has tapped a word in the word list.
+ * @param data gameId
+ */
+function playerAnswer(data) {
+    console.log('Player ID: ' + data.playerId + ' answered a question with: ' + data.answer);
+
+    // The player's answer is attached to the data object.  \
+    // Emit an event with the answer so it can be checked by the 'Host'
+    io.sockets.in(data.gameId).emit('hostCheckAnswer', data);
+};
+
+/**
+ * The game is over, and a player has clicked a button to restart the game.
+ * @param data
+ */
+function playerRestart(data) {
+    console.log('Player: ' + data.playerName + ' ready for new game.');
+    console.log('playerId: ' + this.id );
+
+    // Emit the player's data back to the clients in the game room.
+    data.playerId = this.id;
+    io.sockets.in(data.gameId).emit('playerJoinedRoom',data);
+};
 
 /* *************************
    *                       *
@@ -165,28 +253,16 @@ async function sendWord(wordPoolIndex, gameId) {
 async function getWordData(i, id){
     console.log("getwordData");
     var wordData;
-    //const count = await Question.count().exec();
-    //var rnd = Math.floor(Math.random() * count);
-    //const question_list = await Question.findOne().skip(rnd).exec();
-    //const question_list = await Game.findOne({'_id' :id},'question').exec();
-    //console.log(question_list);
     const game = await Game.findOne({'gameId' :id})
     .populate('questions').exec();
-/*     await Game.findOne({'gameId' :id})
-        .populate('questions')
-        .exec(function (err, game) {
-        if (err) { console.log(err); }
-        // Successful, so render.
-        //console.log(game.questions[i].title);
-    }); */
     
-    var answerList = [game.questions[i].fakeAnswer1, 
-    game.questions[i].fakeAnswer2, 
-    game.questions[i].fakeAnswer3,
-    game.questions[i].fakeAnswer4,
-    game.questions[i].fakeAnswer5];
+    var answerList = [
+        game.questions[i].fakeAnswer1, 
+        game.questions[i].fakeAnswer2, 
+        game.questions[i].fakeAnswer3,
+        game.questions[i].fakeAnswer4,
+        game.questions[i].fakeAnswer5];
 
-    //console.log(answerList);
     rnd = Math.floor(Math.random() * 5);
     answerList.splice(rnd, 0, game.questions[i].correctAnswer); 
         // Package the words into a single object.
@@ -198,9 +274,7 @@ async function getWordData(i, id){
         urlMedia : game.questions[i].urlMedia,
         list : answerList      // Word list for player (decoys and answer)
     };     
-    //console.log("inside await");   
 
-      //  console.log(wordData);
     return wordData;
 
 }

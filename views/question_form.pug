@@ -5,8 +5,14 @@ block content
 
   form(method='POST' action='')
     div.form-group
+      label(for='typeQuestion') Type Question:
+      select#typeQuestion.form-control(type='select', placeholder='Select Type Question' name='typeQuestion' required='true' )
+          option(value=0, selected=(question.typeQuestion==0 ? 'selected' : false) ) #{'MultipleChoice'}
+          option(value=1, selected=(question.typeQuestion==1 ? 'selected' : false) ) #{'SingleTextInput'}
       label(for='title') Title:
-      input#question.form-control(type='text', placeholder='Title' name='title' required='true' value=(undefined===question ? '' : question.title) )
+      input#title.form-control(type='text', placeholder='Title' name='title' required='true' value=(undefined===question ? '' : question.title) )
+      label(for='subText') Description:
+      input#subText.form-control(type='textarea', placeholder='subText' name='subText' required='false' value=(undefined===question ? '' : question.subText) )
       label(for='correctAnswer') Correct Answer:
       input#correctAnswer.form-control(type='text', placeholder='Correct Answer' name='correctAnswer' required='true' value=(undefined===question ? '' : question.correctAnswer))
       label(for='fakeAnswer1') Fake Answer 1:
@@ -23,7 +29,14 @@ block content
       input#typeMedia.form-control(type='text', placeholder='typeMedia' name='typeMedia' required='false' value=(undefined===question ? '' : question.typeMedia))
       label(for='urlMedia') urlMedia:
       input#urlMedia.form-control(type='text', placeholder='urlMedia' name='urlMedia' required='false' value=(undefined===question ? '' : question.urlMedia))
-          
+
+    div.form-group
+      label Genre:
+      div
+        for genre in genres
+          div(style='display: inline; padding-right:10px;')
+            input.checkbox-input(type='checkbox', name='genre', id=genre._id, value=genre._id, checked=genre.checked )
+            label(for=genre._id) #{genre.name}          
     button.btn.btn-primary(type='submit') Submit
 
   if errors 
