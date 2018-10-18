@@ -217,6 +217,11 @@ jQuery(function($){
             activeRound: 1,
 
             /**
+             * Contains references to the selected genres 
+             */
+            selectedGenres : [],
+
+            /**
              * Handler for the "Create" button on the Title Screen.
              */
             onCreateClick: function () {
@@ -231,6 +236,8 @@ jQuery(function($){
                 App.Host.gameType = document.getElementById("gameTypes").selectedIndex
                 App.Host.numPlayersInTotal = $('#nUsers').val();
                 App.Host.numQuestions = $('#nQuestions').val();
+                //console.log(getSelectedOptions(document.getElementById("selectedGenres")));
+                App.Host.selectedGenres = getSelectedOptions(document.getElementById("selectedGenres"));
                 console.log("Clicked Start A Game with " + App.Host.gameType + App.Host.numPlayersInTotal);
                 App.Host.displayStartGameScreen();
                 IO.socket.emit('hostCreateNewGame');
@@ -299,8 +306,12 @@ jQuery(function($){
                         gameId : App.gameId,
                         numberOfPlayers : App.Host.numPlayersInTotal,
                         gameType: App.Host.gameType,
-                        numQuestions: App.Host.numQuestions
+                        numQuestions: App.Host.numQuestions,
+                        selectedGenres:App.Host.selectedGenres
                     };
+                    //var selGenres = ["Kids", "History"];
+                    //console.log(data.selectedGenres);
+                    //console.log(selGenres);
                     // Let the server know that the players are present.
                     //IO.socket.emit('hostRoomFull',App.gameId);
                     IO.socket.emit('hostRoomFull',data);
@@ -529,6 +540,10 @@ jQuery(function($){
                 console.log('Clicked Answer Button');
                 var $btn = $(this);      // the tapped button
                 var answer = $btn.val(); // The tapped word
+
+                // Replace the answers with a thank you message to prevent further answering
+                $('#gameArea')
+                    .html('<div class="gameOver">Thanks!</div>')
 
                 // Send the player info and tapped word to the server so
                 // the host can check the answer.

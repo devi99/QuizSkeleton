@@ -66,11 +66,14 @@ function hostPrepareGame(hostData) {
         mySocketId : sock.id,
         gameId : hostData.gameId,
     };
+    //console.log(hostData.selectedGenres);
+    //var selGenres = ["Kids", "History"];
+    //console.log(selGenres);
 
-    var genres = Genre.find({name: {$in: ['History', 'Kids']}});
+    var genres = Genre.find({name: {$in: hostData.selectedGenres}});
     genres.select('_id');
     genres.exec(function (err, results) {
-        if (err) return handleError(err);
+        if (err) return console.log(err);
         console.log(results);
         var filter = { genre: { $in: results } };
         Question.findRandom(filter, {}, {limit: hostData.numQuestions}, function(err, results) {

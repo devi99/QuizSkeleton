@@ -20,6 +20,7 @@ block content
             </div>
         </div>
     </div>
+  
   script(id="create-game-template" type="text/template").
       <section>
       <div class="container">
@@ -52,7 +53,7 @@ block content
             <div class="service-box mt-5 mx-auto">
               <i class="fas fa-4x fa-code text-primary mb-3 sr-icon-3"></i>
               <h3 class="mb-3">Genres: </h3>
-                <select class="mdb-select md-form" multiple>
+                <select id="selectedGenres" class="mdb-select md-form" multiple>
                   <option value="1">Kids</option>
                   <option value="2">History</option>
                 </select>        
@@ -122,6 +123,7 @@ block content
 
   script(src="libs/textFit.min.js")
   script(src="libs/fastclick.js")
+  script(src="libs/utilitycode.js")
   script(src="/socket.io/socket.io.js")
   script(src="/appQuizClient.js")
 
